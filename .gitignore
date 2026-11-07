@@ -1,0 +1,6 @@
+servers/
+*.jar
+*.log
+*.tmp
+Thumbs.db
+.DS_Store
