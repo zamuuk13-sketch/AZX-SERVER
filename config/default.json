@@ -1,0 +1,9 @@
+{
+  "minecraftVersion": "1.20.1",
+  "defaultLoader": "Forge",
+  "forgeVersion": "47.2.0",
+  "defaultPort": 25565,
+  "defaultOnlineMode": true,
+  "defaultMaxPlayers": 5,
+  "defaultViewDistance": 6
+}
