@@ -115,7 +115,7 @@ function Invoke-Restore {
   if(!(Test-Path $StageConfig)){throw 'Backup nao contem azx-server.json.'}
   $StageSettings=Get-Content $StageConfig -Raw | ConvertFrom-Json
   if($StageSettings.name -ne $Config.name){throw 'Este backup pertence a outra instancia AZX.'}
-  [void](New-AzxBackup)
+  $SafetyBackup=New-AzxBackup
   $Keep=Join-Path $Temp 'preserved-backups'
   if(Test-Path $BackupRoot){Move-Item -LiteralPath $BackupRoot -Destination $Keep}
   try {
@@ -123,8 +123,17 @@ function Invoke-Restore {
    Get-ChildItem -LiteralPath $Stage -Force | Where-Object {$_.Name -ne $ManifestName} | ForEach-Object {Copy-Item -LiteralPath $_.FullName -Destination $ServerPath -Recurse -Force}
    Move-Item -LiteralPath $Keep -Destination $BackupRoot
   } catch {
-   Write-Host 'Falha ao aplicar o backup. Tentando restaurar a estrutura anterior...' -ForegroundColor Red
-   throw
+   Write-Host 'Falha ao aplicar o backup. Restaurando a copia de seguranca automatica...' -ForegroundColor Red
+   try {
+    $Rollback=Join-Path $Temp 'rollback'
+    New-Item -ItemType Directory -Force -Path $Rollback | Out-Null
+    $SafetyPath=Join-Path $Keep ([IO.Path]::GetFileName($SafetyBackup))
+    $RollbackManifest=Test-BackupArchive $SafetyPath $Rollback
+    Get-ChildItem -LiteralPath $ServerPath -Force | Where-Object {$_.Name -ne 'backups'} | Remove-Item -Recurse -Force
+    Get-ChildItem -LiteralPath $Rollback -Force | Where-Object {$_.Name -ne $ManifestName} | ForEach-Object {Copy-Item -LiteralPath $_.FullName -Destination $ServerPath -Recurse -Force}
+    if(Test-Path $Keep){Move-Item -LiteralPath $Keep -Destination $BackupRoot}
+    throw 'A restauracao falhou; o estado anterior foi recuperado pelo backup automatico.'
+   } catch {throw "Falha na restauracao e no rollback: $($_.Exception.Message)"}
   }
   Write-Host ("Restauracao concluida: {0} ({1} arquivos verificados)." -f $Item.Name,$Manifest.files.Count) -ForegroundColor Green
   Write-Host 'Revise os arquivos e execute start.bat manualmente quando estiver pronto.'
