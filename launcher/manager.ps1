@@ -12,12 +12,11 @@ function Write-Title {
     Clear-Host
     Write-Host '==================================================' -ForegroundColor DarkCyan
     Write-Host '                 AZX SERVER' -ForegroundColor Cyan
-    Write-Host '            SERVER CREATOR - ETAPA 1' -ForegroundColor Gray
+    Write-Host '        SERVER MANAGER - ETAPA 3' -ForegroundColor Gray
     Write-Host '==================================================' -ForegroundColor DarkCyan
     Write-Host ''
 }
-function Ask-Number([string]$Label, [int]$Default, [int]$Min, [int]$Max) {
-    function Select-ServerForManagement {
+function Select-ServerForManagement {
     $Items = @(Get-ChildItem -LiteralPath $ServersRoot -Directory -ErrorAction SilentlyContinue | Where-Object { Test-Path (Join-Path $_.FullName 'azx-server.json') })
     if ($Items.Count -eq 0) { Write-Host 'Nenhuma instancia AZX encontrada.' -ForegroundColor Yellow; return }
     for ($i=0; $i -lt $Items.Count; $i++) { Write-Host "$($i+1). $($Items[$i].Name)" }
@@ -28,7 +27,20 @@ function Ask-Number([string]$Label, [int]$Default, [int]$Min, [int]$Max) {
         Invoke-Item (Join-Path $Items[$N-1].FullName 'configure.bat')
     }
 }
-while ($true) {
+function Select-ServerForMonitoring([string]$Mode) {
+    $Items = @(Get-ChildItem -LiteralPath $ServersRoot -Directory -ErrorAction SilentlyContinue | Where-Object { Test-Path (Join-Path $_.FullName 'azx-server.json') })
+    if ($Items.Count -eq 0) { Write-Host 'Nenhuma instancia AZX encontrada.' -ForegroundColor Yellow; return }
+    for ($i=0; $i -lt $Items.Count; $i++) { Write-Host "$($i+1). $($Items[$i].Name)" }
+    $Pick = Read-Host 'Escolha o servidor (Enter cancela)'
+    $N = 0
+    if ([int]::TryParse($Pick,[ref]$N) -and $N -ge 1 -and $N -le $Items.Count) {
+        & (Join-Path $Root 'launcher\prepare-instance.ps1') -Folder $Items[$N-1].FullName
+        & (Join-Path $Root 'launcher\monitor.ps1') -ServerPath $Items[$N-1].FullName -Mode $Mode
+        Read-Host 'Pressione Enter para voltar' | Out-Null
+    }
+}
+function Ask-Number([string]$Label, [int]$Default, [int]$Min, [int]$Max) {
+    while ($true) {
         $Answer = Read-Host "$Label [$Default]"
         if ([string]::IsNullOrWhiteSpace($Answer)) { return $Default }
         $Number = 0
@@ -344,6 +356,8 @@ while ($true) {
     Write-Host '4. Abrir pasta SERVERS'
     Write-Host '5. Gerenciar servidor'
     Write-Host '6. Sair'
+    Write-Host '7. Status do servidor'
+    Write-Host '8. Diagnostico de rede'
     Write-Host ''
     $Choice = Read-Host 'Opcao'
     switch ($Choice) {
@@ -353,6 +367,8 @@ while ($true) {
         '4' { Invoke-Item $ServersRoot }
         '5' { Write-Title; Select-ServerForManagement; Read-Host 'Pressione Enter para voltar' | Out-Null }
         '6' { return }
+        '7' { Write-Title; Select-ServerForMonitoring 'status' }
+        '8' { Write-Title; Select-ServerForMonitoring 'diagnostics' }
         default { Write-Host 'Opcao invalida.' -ForegroundColor Yellow; Start-Sleep -Seconds 1 }
     }
 }
