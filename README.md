@@ -64,6 +64,18 @@ Instancias criadas antes da Etapa 2 recebem os arquivos de gerenciamento e a con
 3. Para administrar diretamente, abra `configure.bat`, `stop.bat`, `restart.bat` ou `reset.bat` dentro da pasta da instancia.
 4. Alteracoes em `server.properties` exigem reiniciar o servidor. Operacoes OP e whitelist podem ser enviadas ao servidor ligado.
 
+## Etapa 3 — Monitoramento e diagnostico
+
+Cada instancia AZX recebe tres ferramentas adicionais:
+
+- `status.bat`: mostra se a porta TCP local responde, latencia de conexao TCP, processo Java/PID, memoria residente, CPU acumulada, tempo ligado, espaco livre e erros recentes do log.
+- `monitorar.bat`: atualiza o painel de status continuamente; use Ctrl+C para sair.
+- `diagnostico.bat`: verifica processo, porta local, enderecos IPv4 da LAN, perfis do Firewall do Windows e erros recentes do log.
+
+O menu principal tambem oferece **Status do servidor** e **Diagnostico de rede**. O monitor consulta somente a instancia selecionada e nao encerra nem altera o mundo.
+
+**Limites importantes:** o teste de ping mede o tempo de conexao TCP no proprio computador, nao o ping real de jogadores externos. O diagnostico nao consegue confirmar automaticamente encaminhamento de porta, disponibilidade publica ou CGNAT. Para acesso externo, encaminhe apenas a porta TCP do jogo para o IPv4 local correto e mantenha a porta RCON fechada. Nenhuma senha RCON e exibida pelo painel.
+
 ## Limites atuais
 
-As Etapas 1 e 2 cobrem criacao e administracao basica para Minecraft 1.20.1 com Vanilla, Forge e Fabric. Ainda faltam testes de execucao em Windows em diferentes instalacoes, monitoramento, diagnostico de rede, backups, atualizacoes e suporte a mais loaders/versoes. O RCON nao e criptografado e nao deve ser exposto a internet.
+As Etapas 1 a 3 cobrem criacao, administracao basica, monitoramento local e diagnostico inicial para Minecraft 1.20.1 com Vanilla, Forge e Fabric. Ainda faltam testes de execucao em Windows em diferentes instalacoes, backups, atualizacoes e suporte a mais loaders/versoes. O RCON nao e criptografado e nao deve ser exposto a internet.
