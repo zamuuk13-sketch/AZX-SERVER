@@ -39,4 +39,15 @@ foreach($Action in @('configure','stop','restart','reset')){
     )
     Set-Content -LiteralPath (Join-Path $Folder "$Action.bat") -Value $Bat -Encoding ASCII
 }
+$HelpPath=Join-Path $Folder 'LEIA-PRIMEIRO.txt'
+$ManagementHelp=@'
+
+AZX MANAGER (ETAPA 2)
+- configure.bat: alterar configuracoes do servidor.
+- stop.bat: desligar salvando o mundo via RCON.
+- restart.bat: desligar corretamente e iniciar novamente.
+- reset.bat: restaurar configuracoes comuns sem apagar o mundo.
+Mantenha azx-rcon.txt privado e nunca encaminhe a porta RCON para a internet.
+'@
+if(Test-Path $HelpPath){$Existing=Get-Content $HelpPath -Raw;if($Existing -notmatch 'AZX MANAGER'){Add-Content -LiteralPath $HelpPath -Value $ManagementHelp -Encoding UTF8}}
 Write-Host 'Arquivos de gerenciamento AZX instalados.' -ForegroundColor Green
