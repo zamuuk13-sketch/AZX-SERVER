@@ -14,12 +14,15 @@ jobs:
       - name: Validate PowerShell syntax
         shell: pwsh
         run: |
-          $tokens = $null
-          $errors = $null
-          [System.Management.Automation.Language.Parser]::ParseFile("$PWD/launcher/manager.ps1", [ref]$tokens, [ref]$errors) | Out-Null
-          if ($errors.Count -gt 0) {
-            $errors | Format-List
-            exit 1
+          $files = @("$PWD/launcher/manager.ps1", "$PWD/launcher/server-manager.ps1")
+          foreach ($file in $files) {
+            $tokens = $null
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile($file, [ref]$tokens, [ref]$errors) | Out-Null
+            if ($errors.Count -gt 0) {
+              $errors | Format-List
+              exit 1
+            }
           }
       - name: Validate default configuration
         shell: pwsh
