@@ -45,6 +45,15 @@ foreach($Tool in @(@{Name='status';Mode='status'},@{Name='diagnostico';Mode='dia
 }
 $AdvancedBat=@('@echo off','setlocal','cd /d "%~dp0"','powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%~dp0..\..\launcher\advanced.ps1" -ServerPath "%~dp0." -Action menu','if errorlevel 1 echo O AZX Advanced encontrou um erro.','pause','endlocal')
 Set-Content -LiteralPath (Join-Path $Folder 'advanced.bat') -Value $AdvancedBat -Encoding ASCII
+$PlayitBat=@(
+    '@echo off'
+    'setlocal'
+    'cd /d "%~dp0"'
+    'powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%~dp0..\..\launcher\playit-manager.ps1" -Action menu -ServerPath "%~dp0."'
+    'pause'
+    'endlocal'
+)
+Set-Content -LiteralPath (Join-Path $Folder 'playit.bat') -Value $PlayitBat -Encoding ASCII
 $HelpPath=Join-Path $Folder 'LEIA-PRIMEIRO.txt'
 $ManagementHelp=@'
 
@@ -76,4 +85,15 @@ AZX ADVANCED (ETAPA 5)
 - Backups incluem configuracoes e podem conter a senha RCON. Mantenha os arquivos ZIP privados e copie-os para outro disco.
 '@
 if(Test-Path $HelpPath){$Existing=Get-Content $HelpPath -Raw;if($Existing -notmatch 'AZX ADVANCED'){Add-Content -LiteralPath $HelpPath -Value $AdvancedHelp -Encoding UTF8}}
+$PlayitHelp=@'
+
+AZX EXTERNAL ACCESS (PLAYIT)
+- playit.bat: habilita e administra o tunel publico Playit para esta instancia.
+- Ao habilitar, o AZX baixa o agente oficial do Playit para a pasta services\\playit e o inicia.
+- Na primeira utilizacao, vincule o agente a sua conta Playit e crie no painel um tunel Minecraft Java para 127.0.0.1 e a porta do servidor.
+- Cole o endereco publico gerado no menu Playit do AZX. Depois disso, start.bat inicia o agente automaticamente quando a integracao estiver habilitada.
+- O agente e compartilhado entre instancias AZX deste computador; nao execute copias diferentes dele.
+- Somente o host precisa do agente. Os jogadores entram pelo endereco publico usando o Minecraft normal.
+'@
+if(Test-Path $HelpPath){$Existing=Get-Content $HelpPath -Raw;if($Existing -notmatch 'AZX EXTERNAL ACCESS'){Add-Content -LiteralPath $HelpPath -Value $PlayitHelp -Encoding UTF8}}
 Write-Host 'Arquivos de gerenciamento, monitoramento e AZX Advanced instalados.' -ForegroundColor Green
