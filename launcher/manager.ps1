@@ -17,7 +17,18 @@ function Write-Title {
     Write-Host ''
 }
 function Ask-Number([string]$Label, [int]$Default, [int]$Min, [int]$Max) {
-    while ($true) {
+    function Select-ServerForManagement {
+    $Items = @(Get-ChildItem -LiteralPath $ServersRoot -Directory -ErrorAction SilentlyContinue | Where-Object { Test-Path (Join-Path $_.FullName 'azx-server.json') })
+    if ($Items.Count -eq 0) { Write-Host 'Nenhuma instancia AZX encontrada.' -ForegroundColor Yellow; return }
+    for ($i=0; $i -lt $Items.Count; $i++) { Write-Host "$($i+1). $($Items[$i].Name)" }
+    $Pick = Read-Host 'Escolha o servidor (Enter cancela)'
+    $N = 0
+    if ([int]::TryParse($Pick,[ref]$N) -and $N -ge 1 -and $N -le $Items.Count) {
+        & (Join-Path $Root 'launcher\prepare-instance.ps1') -Folder $Items[$N-1].FullName
+        Invoke-Item (Join-Path $Items[$N-1].FullName 'configure.bat')
+    }
+}
+while ($true) {
         $Answer = Read-Host "$Label [$Default]"
         if ([string]::IsNullOrWhiteSpace($Answer)) { return $Default }
         $Number = 0
@@ -173,7 +184,7 @@ function New-StartBat([string]$Folder, [string]$Loader, [int]$MinRam, [int]$MaxR
             '  exit /b 1'
             ')'
             "echo Iniciando servidor Fabric... RAM: $MinRam GB - $MaxRam GB"
-            ('java -Xms{0}G -Xmx{1}G -jar fabric-server-launch.jar nogui' -f $MinRam,$MaxRam)
+            'java -Xms' + $MinRam + 'G -Xmx' + $MaxRam + 'G -jar fabric-server-launch.jar nogui'
         )
     } else {
         $Lines += @(
@@ -183,218 +194,11 @@ function New-StartBat([string]$Folder, [string]$Loader, [int]$MinRam, [int]$MaxR
             '  exit /b 1'
             ')'
             "echo Iniciando servidor Vanilla... RAM: $MinRam GB - $MaxRam GB"
-            ('java -Xms{0}G -Xmx{1}G -jar server.jar nogui' -f $MinRam,$MaxRam)
+            'java -Xms' + $MinRam + 'G -Xmx' + $MaxRam + 'G -jar server.jar nogui'
         )
     }
     $Lines += @('echo.','echo O processo do servidor foi encerrado.','pause','endlocal')
     Set-Content -LiteralPath (Join-Path $Folder 'start.bat') -Value $Lines -Encoding ASCII
-}
-function Install-ManagementFiles([string]$Folder) {
-    $ConfigPath = Join-Path $Folder 'azx-server.json'
-    $PropertiesPath = Join-Path $Folder 'server.properties'
-    if (-not (Test-Path $ConfigPath) -or -not (Test-Path $PropertiesPath)) { return }
-    $Config = Get-Content -LiteralPath $ConfigPath -Raw | ConvertFrom-Json
-    if (-not $Config.rconPort) {
-        $Port = [int]$Config.port
-        $Config | Add-Member -NotePropertyName rconPort -NotePropertyValue $(if($Port -le 55535){$Port+10000}else{$Port-10000}) -Force
-    }
-    $RconFile = Join-Path $Folder 'azx-rcon.txt'
-    if (-not (Test-Path $RconFile)) {
-        $Bytes = New-Object byte[] 32
-        [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($Bytes)
-        $Password = [Convert]::ToBase64String($Bytes).TrimEnd('=').Replace('+','X').Replace('/','Y')
-        Set-Content -LiteralPath $RconFile -Value $Password -Encoding ASCII
-    } else { $Password = (Get-Content -LiteralPath $RconFile -Raw).Trim() }
-    $Map = [ordered]@{}
-    foreach ($Line in Get-Content -LiteralPath $PropertiesPath) {
-        if ($Line -match '^\s*([^#\s][^=]*)=(.*)
-    Write-Title
-    Write-Host 'CRIAR NOVO SERVIDOR' -ForegroundColor Green
-    Write-Host 'Etapa 1 suporta Minecraft 1.20.1.' -ForegroundColor Gray
-    Write-Host ''
-    $JavaInfo = Get-JavaInfo
-    if (-not $JavaInfo -or $JavaInfo.Major -lt 17) {
-        Write-Host 'Java 17 ou superior nao foi encontrado.' -ForegroundColor Red
-        if ($JavaInfo) { Write-Host $JavaInfo.Output }
-        Write-Host 'Instale Java 17 x64 e abra o AZX novamente:' -ForegroundColor Yellow
-        Write-Host 'https://adoptium.net/temurin/releases/?version=17' -ForegroundColor Cyan
-        return
-    }
-    Write-Host "Java detectado: versao $($JavaInfo.Major)" -ForegroundColor Green
-    $Name = Read-Host 'Nome do servidor'
-    if ([string]::IsNullOrWhiteSpace($Name)) { $Name = 'MeuServidor' }
-    $Name = ($Name -replace '[<>:"/\\|?*]', '-').Trim().TrimEnd('.')
-    if ([string]::IsNullOrWhiteSpace($Name) -or $Name -in @('.', '..')) { Write-Host 'Nome invalido.' -ForegroundColor Red; return }
-    if ($Name.Length -gt 48) { $Name = $Name.Substring(0,48).Trim() }
-    $Folder = Join-Path $ServersRoot $Name
-    if (Test-Path -LiteralPath $Folder) { Write-Host 'Ja existe um servidor com esse nome. Nenhum arquivo foi alterado.' -ForegroundColor Red; return }
-    Write-Host ''
-    Write-Host 'Minecraft:'
-    Write-Host '1.20.1 (versao suportada nesta etapa)'
-    $Version = Read-Host 'Versao [1.20.1]'
-    if ([string]::IsNullOrWhiteSpace($Version)) { $Version = $SupportedMinecraft }
-    if ($Version -ne $SupportedMinecraft) { Write-Host 'Nesta etapa, o criador esta validado para Minecraft 1.20.1.' -ForegroundColor Yellow; return }
-    Write-Host ''
-    Write-Host 'SOFTWARE DO SERVIDOR'
-    Write-Host '1. Vanilla - sem mods'
-    Write-Host '2. Forge 47.2.0 - mods Forge'
-    Write-Host '3. Fabric - mods Fabric'
-    $LoaderChoice = Read-Host 'Escolha [2]'
-    if ([string]::IsNullOrWhiteSpace($LoaderChoice)) { $LoaderChoice = '2' }
-    switch ($LoaderChoice) {
-        '1' { $Loader = 'Vanilla' }
-        '2' { $Loader = 'Forge' }
-        '3' { $Loader = 'Fabric' }
-        default { Write-Host 'Opcao invalida.' -ForegroundColor Red; return }
-    }
-    Write-Host ''
-    Write-Host '1. Exigir autenticacao oficial (recomendado)'
-    Write-Host '2. Permitir clientes sem autenticacao oficial (maior risco)'
-    $AuthChoice = Read-Host 'Autenticacao [1]'
-    if ([string]::IsNullOrWhiteSpace($AuthChoice)) { $AuthChoice = '1' }
-    if ($AuthChoice -notin @('1','2')) { Write-Host 'Opcao invalida.' -ForegroundColor Red; return }
-    $OnlineMode = ($AuthChoice -eq '1')
-    $Port = Ask-Number 'Porta TCP' 25565 1 65535
-    $Players = Ask-Number 'Maximo de jogadores' 10 1 100
-    $ViewDistance = Ask-Number 'Distancia de visao' 6 2 16
-    $MinRam = Ask-Number 'RAM inicial em GB' 2 1 64
-    $MaxRam = Ask-Number 'RAM maxima em GB' ([Math]::Max(4,$MinRam)) $MinRam 64
-    Write-Host ''
-    Write-Host 'RESUMO DA INSTALACAO' -ForegroundColor Cyan
-    Write-Host "Nome: $Name"
-    Write-Host "Minecraft: $Version"
-    Write-Host "Software: $Loader"
-    Write-Host "Porta TCP: $Port"
-    Write-Host "Jogadores: $Players"
-    Write-Host "RAM: $MinRam-$MaxRam GB"
-    Write-Host "Autenticacao oficial: $OnlineMode"
-    $Confirm = Read-Host 'Criar este servidor? (S/N)'
-    if ($Confirm -notmatch '^(s|sim)$') { Write-Host 'Criacao cancelada.'; return }
-    New-Item -ItemType Directory -Path $Folder | Out-Null
-    try {
-        New-InstanceFiles -Folder $Folder -Name $Name -Loader $Loader -Version $Version -Port $Port -OnlineMode $OnlineMode -Players $Players -ViewDistance $ViewDistance -MinRam $MinRam -MaxRam $MaxRam
-        if ($Loader -eq 'Vanilla') {
-            $ServerDownload = Get-VanillaServerMetadata -Version $Version
-            $ServerJar = Join-Path $Folder 'server.jar'
-            Invoke-AzxDownload -Url $ServerDownload.url -Destination $ServerJar
-            $Hash = (Get-FileHash -LiteralPath $ServerJar -Algorithm SHA1).Hash.ToLowerInvariant()
-            if ($Hash -ne $ServerDownload.sha1.ToLowerInvariant()) { Remove-Item -LiteralPath $ServerJar -Force; throw 'A verificacao SHA-1 do server.jar falhou. O arquivo foi removido.' }
-        } elseif ($Loader -eq 'Forge') {
-            $ForgeCoordinate = "$Version-$ForgeVersion"
-            $Installer = Join-Path $Folder "forge-$ForgeCoordinate-installer.jar"
-            $ForgeUrl = "https://maven.minecraftforge.net/net/minecraftforge/forge/$ForgeCoordinate/forge-$ForgeCoordinate-installer.jar"
-            Invoke-AzxDownload -Url $ForgeUrl -Destination $Installer
-            Write-Host 'Instalando Forge no modo servidor...' -ForegroundColor Cyan
-            Push-Location $Folder
-            try {
-                & java -jar $Installer --installServer
-                if ($LASTEXITCODE -ne 0) { throw "O instalador Forge retornou codigo $LASTEXITCODE." }
-            } finally { Pop-Location }
-            Remove-Item -LiteralPath $Installer -Force -ErrorAction SilentlyContinue
-            if (-not (Test-Path (Join-Path $Folder 'run.bat'))) { throw 'Forge terminou sem gerar run.bat. Verifique a conexao e os logs do instalador.' }
-            Set-Content -LiteralPath (Join-Path $Folder 'user_jvm_args.txt') -Value @("-Xms$($MinRam)G","-Xmx$($MaxRam)G") -Encoding ASCII
-        } elseif ($Loader -eq 'Fabric') {
-            Write-Host 'Consultando versoes oficiais do Fabric...' -ForegroundColor DarkGray
-            $LoaderList = Invoke-RestMethod -Uri "https://meta.fabricmc.net/v2/versions/loader/$Version" -TimeoutSec 45
-            $InstallerList = Invoke-RestMethod -Uri 'https://meta.fabricmc.net/v2/versions/installer' -TimeoutSec 45
-            $FabricLoaderVersion = $LoaderList[0].loader.version
-            $FabricInstallerVersion = $InstallerList[0].version
-            if (-not $FabricLoaderVersion -or -not $FabricInstallerVersion) { throw 'Nao foi possivel obter as versoes oficiais do Fabric.' }
-            $FabricUrl = "https://meta.fabricmc.net/v2/versions/loader/$Version/$FabricLoaderVersion/$FabricInstallerVersion/server/jar"
-            Invoke-AzxDownload -Url $FabricUrl -Destination (Join-Path $Folder 'fabric-server-launch.jar')
-            $SettingsPath = Join-Path $Folder 'azx-server.json'
-            $Settings = Get-Content -LiteralPath $SettingsPath -Raw | ConvertFrom-Json
-            $Settings.loaderVersion = $FabricLoaderVersion
-            $Settings.installerVersion = $FabricInstallerVersion
-            $Settings | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $SettingsPath -Encoding UTF8
-        }
-        New-StartBat -Folder $Folder -Loader $Loader -MinRam $MinRam -MaxRam $MaxRam
-        Install-ManagementFiles -Folder $Folder
-        Write-Host ''
-        Write-Host 'SERVIDOR CRIADO COM SUCESSO!' -ForegroundColor Green
-        Write-Host "Pasta: $Folder"
-        Write-Host 'Antes do primeiro boot: leia e aceite manualmente o EULA, se concordar.'
-        Write-Host 'O mundo real sera gerado pelo Minecraft quando o servidor iniciar pela primeira vez.'
-        if (-not $OnlineMode) { Write-Host 'ATENCAO: online-mode=false permite falsificacao de nomes. Proteja o servidor.' -ForegroundColor Yellow }
-        Invoke-Item $Folder
-    } catch {
-        Write-Host ''
-        Write-Host "FALHA NA CRIACAO: $($_.Exception.Message)" -ForegroundColor Red
-        Write-Host "A pasta foi mantida para diagnostico: $Folder" -ForegroundColor Yellow
-        Write-Host 'Confira sua internet, espaco em disco e os arquivos baixados. Nao inicie uma instalacao incompleta.'
-    }
-}
-function Show-Servers {
-    $Items = @(Get-ChildItem -LiteralPath $ServersRoot -Directory -ErrorAction SilentlyContinue)
-    if ($Items.Count -eq 0) { Write-Host 'Nenhum servidor criado ainda.' -ForegroundColor Yellow; return }
-    Write-Host 'SERVIDORES AZX' -ForegroundColor Cyan
-    foreach ($Item in $Items) {
-        $ConfigPath = Join-Path $Item.FullName 'azx-server.json'
-        if (Test-Path $ConfigPath) {
-            try {
-                $Config = Get-Content -LiteralPath $ConfigPath -Raw | ConvertFrom-Json
-                Write-Host ("- {0} | Minecraft {1} | {2} | porta {3}" -f $Item.Name,$Config.minecraftVersion,$Config.loader,$Config.port)
-            } catch { Write-Host "- $($Item.Name) | configuracao nao reconhecida" }
-        } else { Write-Host "- $($Item.Name)" }
-    }
-}
-function Show-Java {
-    $Info = Get-JavaInfo
-    if ($Info) { Write-Host "Java $($Info.Major) encontrado em $($Info.Path)" -ForegroundColor Green; Write-Host $Info.Output }
-    else { Write-Host 'Java nao encontrado. Para Minecraft 1.20.1, instale Java 17 x64:' -ForegroundColor Red; Write-Host 'https://adoptium.net/temurin/releases/?version=17' -ForegroundColor Cyan }
-}
-while ($true) {
-    Write-Title
-    Write-Host '1. Criar servidor'
-    Write-Host '2. Listar servidores criados'
-    Write-Host '3. Verificar Java'
-    Write-Host '4. Abrir pasta SERVERS'
-    Write-Host '5. Gerenciar servidor'
-    Write-Host '6. Sair'
-    Write-Host ''
-    $Choice = Read-Host 'Opcao'
-    switch ($Choice) {
-        '1' { Write-Title; New-AzxServer; Write-Host ''; Read-Host 'Pressione Enter para voltar' | Out-Null }
-        '2' { Write-Title; Show-Servers; Write-Host ''; Read-Host 'Pressione Enter para voltar' | Out-Null }
-        '3' { Write-Title; Show-Java; Write-Host ''; Read-Host 'Pressione Enter para voltar' | Out-Null }
-        '4' { Invoke-Item $ServersRoot }
-        '5' { Write-Title; Select-ServerForManagement; Read-Host 'Pressione Enter para voltar' | Out-Null }
-        '6' { return }
-        default { Write-Host 'Opcao invalida.' -ForegroundColor Yellow; Start-Sleep -Seconds 1 }
-    }
-}
-) { $Map[$Matches[1]] = $Matches[2] }
-    }
-    $Map['enable-rcon'] = 'true'
-    $Map['rcon.port'] = "$($Config.rconPort)"
-    $Map['rcon.password'] = $Password
-    Copy-Item -LiteralPath $PropertiesPath -Destination "$PropertiesPath.azx-backup" -Force
-    $Lines = foreach ($Key in $Map.Keys) { "$Key=$($Map[$Key])" }
-    Set-Content -LiteralPath $PropertiesPath -Value $Lines -Encoding ASCII
-    $Config | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $ConfigPath -Encoding UTF8
-    foreach ($Action in @('configure','stop','restart','reset')) {
-        $Bat = @(
-            '@echo off'
-            'setlocal'
-            'cd /d "%~dp0"'
-            'powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%~dp0..\..\launcher\server-manager.ps1" -ServerPath "%~dp0." -Action ' + $Action
-            'if errorlevel 1 echo O AZX Manager encontrou um erro. Consulte a mensagem acima.'
-            'pause'
-            'endlocal'
-        )
-        Set-Content -LiteralPath (Join-Path $Folder "$Action.bat") -Value $Bat -Encoding ASCII
-    }
-}
-function Select-ServerForManagement {
-    $Items = @(Get-ChildItem -LiteralPath $ServersRoot -Directory -ErrorAction SilentlyContinue | Where-Object { Test-Path (Join-Path $_.FullName 'azx-server.json') })
-    if ($Items.Count -eq 0) { Write-Host 'Nenhuma instancia AZX encontrada.' -ForegroundColor Yellow; return }
-    for ($i=0; $i -lt $Items.Count; $i++) { Write-Host "$($i+1). $($Items[$i].Name)" }
-    $Pick = Read-Host 'Escolha o servidor (Enter cancela)'
-    $N = 0
-    if ([int]::TryParse($Pick,[ref]$N) -and $N -ge 1 -and $N -le $Items.Count) {
-        Install-ManagementFiles -Folder $Items[$N-1].FullName
-        Invoke-Item (Join-Path $Items[$N-1].FullName 'configure.bat')
-    }
 }
 function New-AzxServer {
     Write-Title
@@ -498,6 +302,7 @@ function New-AzxServer {
             $Settings | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $SettingsPath -Encoding UTF8
         }
         New-StartBat -Folder $Folder -Loader $Loader -MinRam $MinRam -MaxRam $MaxRam
+        & (Join-Path $Root 'launcher\prepare-instance.ps1') -Folder $Folder
         Write-Host ''
         Write-Host 'SERVIDOR CRIADO COM SUCESSO!' -ForegroundColor Green
         Write-Host "Pasta: $Folder"
