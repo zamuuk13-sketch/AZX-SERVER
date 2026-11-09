@@ -39,6 +39,18 @@ function Select-ServerForMonitoring([string]$Mode) {
         Read-Host 'Pressione Enter para voltar' | Out-Null
     }
 }
+function Select-ServerForNetwork {
+    $Items = @(Get-ChildItem -LiteralPath $ServersRoot -Directory -ErrorAction SilentlyContinue | Where-Object { Test-Path (Join-Path $_.FullName 'azx-server.json') })
+    if ($Items.Count -eq 0) { Write-Host 'Nenhuma instancia AZX encontrada.' -ForegroundColor Yellow; return }
+    for ($i=0; $i -lt $Items.Count; $i++) { Write-Host "$($i+1). $($Items[$i].Name)" }
+    $Pick = Read-Host 'Escolha o servidor (Enter cancela)'
+    $N = 0
+    if ([int]::TryParse($Pick,[ref]$N) -and $N -ge 1 -and $N -le $Items.Count) {
+        $Folder = $Items[$N-1].FullName
+        & (Join-Path $Root 'launcher\prepare-instance.ps1') -Folder $Folder
+        & (Join-Path $Root 'launcher\playit-manager.ps1') -Action menu -ServerPath $Folder
+    }
+}
 function Select-ServerForAdvanced {
     $Items = @(Get-ChildItem -LiteralPath $ServersRoot -Directory -ErrorAction SilentlyContinue | Where-Object { Test-Path (Join-Path $_.FullName 'azx-server.json') })
     if ($Items.Count -eq 0) { Write-Host 'Nenhuma instancia AZX encontrada.' -ForegroundColor Yellow; return }
@@ -220,6 +232,11 @@ function New-StartBat([string]$Folder, [string]$Loader, [int]$MinRam, [int]$MaxR
             'java -Xms' + $MinRam + 'G -Xmx' + $MaxRam + 'G -jar server.jar nogui'
         )
     }
+    $Lines += @(
+        'echo.'
+        'echo Verificando acesso externo AZX (Playit)...'
+        'powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%~dp0..\..\launcher\playit-manager.ps1" -Action start -ServerPath "%~dp0."'
+    )
     $Lines += @('echo.','echo O processo do servidor foi encerrado.','pause','endlocal')
     Set-Content -LiteralPath (Join-Path $Folder 'start.bat') -Value $Lines -Encoding ASCII
 }
@@ -371,6 +388,7 @@ while ($true) {
     Write-Host '8. Diagnostico de rede'
     Write-Host '9. Monitoramento ao vivo'
     Write-Host '10. AZX Advanced (backup e recuperacao)'
+    Write-Host '11. AZX External Access (Playit)'
     Write-Host ''
     $Choice = Read-Host 'Opcao'
     switch ($Choice) {
@@ -384,6 +402,7 @@ while ($true) {
         '8' { Write-Title; Select-ServerForMonitoring 'diagnostics' }
         '9' { Write-Title; Select-ServerForMonitoring 'watch' }
         '10' { Write-Title; Select-ServerForAdvanced; Read-Host 'Pressione Enter para voltar' | Out-Null }
+        '11' { Write-Title; Select-ServerForNetwork; Read-Host 'Pressione Enter para voltar' | Out-Null }
         default { Write-Host 'Opcao invalida.' -ForegroundColor Yellow; Start-Sleep -Seconds 1 }
     }
 }
