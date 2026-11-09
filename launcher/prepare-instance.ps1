@@ -39,6 +39,10 @@ foreach($Action in @('configure','stop','restart','reset')){
     )
     Set-Content -LiteralPath (Join-Path $Folder "$Action.bat") -Value $Bat -Encoding ASCII
 }
+foreach($Tool in @(@{Name='status';Mode='status'},@{Name='diagnostico';Mode='diagnostics'},@{Name='monitorar';Mode='watch'})){
+    $Bat=@('@echo off','setlocal','cd /d "%~dp0"',('powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%~dp0..\..\launcher\monitor.ps1" -ServerPath "%~dp0." -Mode '+$Tool.Mode),'if errorlevel 1 echo O monitor AZX encontrou um erro.','pause','endlocal')
+    Set-Content -LiteralPath (Join-Path $Folder ($Tool.Name+'.bat')) -Value $Bat -Encoding ASCII
+}
 $HelpPath=Join-Path $Folder 'LEIA-PRIMEIRO.txt'
 $ManagementHelp=@'
 
@@ -50,4 +54,4 @@ AZX MANAGER (ETAPA 2)
 Mantenha azx-rcon.txt privado e nunca encaminhe a porta RCON para a internet.
 '@
 if(Test-Path $HelpPath){$Existing=Get-Content $HelpPath -Raw;if($Existing -notmatch 'AZX MANAGER'){Add-Content -LiteralPath $HelpPath -Value $ManagementHelp -Encoding UTF8}}
-Write-Host 'Arquivos de gerenciamento AZX instalados.' -ForegroundColor Green
+Write-Host 'Arquivos de gerenciamento e monitoramento AZX instalados.' -ForegroundColor Green
