@@ -12,7 +12,7 @@ function Write-Title {
     Clear-Host
     Write-Host '==================================================' -ForegroundColor DarkCyan
     Write-Host '                 AZX SERVER' -ForegroundColor Cyan
-    Write-Host '        SERVER MANAGER - ETAPA 5' -ForegroundColor Gray
+    Write-Host '        SERVER MANAGER - ETAPA 6' -ForegroundColor Gray
     Write-Host '==================================================' -ForegroundColor DarkCyan
     Write-Host ''
 }
@@ -201,6 +201,11 @@ function New-StartBat([string]$Folder, [string]$Loader, [int]$MinRam, [int]$MaxR
         '  exit /b 1'
         ')'
     )
+    $Lines += @(
+        'echo.'
+        'echo Verificando acesso externo AZX (Playit)...'
+        'powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%~dp0..\..\launcher\playit-manager.ps1" -Action start -ServerPath "%~dp0."'
+    )
     if ($Loader -eq 'Forge') {
         $Lines += @(
             'if not exist "run.bat" ('
@@ -232,11 +237,6 @@ function New-StartBat([string]$Folder, [string]$Loader, [int]$MinRam, [int]$MaxR
             'java -Xms' + $MinRam + 'G -Xmx' + $MaxRam + 'G -jar server.jar nogui'
         )
     }
-    $Lines += @(
-        'echo.'
-        'echo Verificando acesso externo AZX (Playit)...'
-        'powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%~dp0..\..\launcher\playit-manager.ps1" -Action start -ServerPath "%~dp0."'
-    )
     $Lines += @('echo.','echo O processo do servidor foi encerrado.','pause','endlocal')
     Set-Content -LiteralPath (Join-Path $Folder 'start.bat') -Value $Lines -Encoding ASCII
 }
