@@ -169,7 +169,14 @@ switch ($Action) {
         if (-not $Config) { throw 'ServerPath e obrigatorio para iniciar a integracao.' }
         Ensure-ExternalSettings
         if (-not $Config.externalAccess.enabled) { Write-Host 'Playit desativado nesta instancia. Use a opcao External Access no AZX para habilitar.'; exit 0 }
-        try { Start-PlayitAgent }
+        try {
+            Start-PlayitAgent
+            if ($Config.externalAccess.address) {
+                Write-Host "ENDERECO PUBLICO PARA COMPARTILHAR: $($Config.externalAccess.address)" -ForegroundColor Green
+            } else {
+                Write-Host 'Playit ativo. Crie o tunel no painel e salve o endereco pelo menu 11 do AZX.'
+            }
+        }
         catch {
             Write-Host "AZX: nao foi possivel iniciar o Playit: $($_.Exception.Message)" -ForegroundColor Yellow
             Write-Host 'O servidor Minecraft continuara iniciando localmente.'
