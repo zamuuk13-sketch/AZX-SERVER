@@ -537,7 +537,8 @@ while ($true) {
     Write-Host '2. Listar servidores criados'
     Write-Host '3. Verificar Java'
     Write-Host '4. Abrir pasta SERVERS'
-    Write-Host '5. Sair'
+    Write-Host '5. Gerenciar servidor'
+    Write-Host '6. Sair'
     Write-Host ''
     $Choice = Read-Host 'Opcao'
     switch ($Choice) {
@@ -545,7 +546,8 @@ while ($true) {
         '2' { Write-Title; Show-Servers; Write-Host ''; Read-Host 'Pressione Enter para voltar' | Out-Null }
         '3' { Write-Title; Show-Java; Write-Host ''; Read-Host 'Pressione Enter para voltar' | Out-Null }
         '4' { Invoke-Item $ServersRoot }
-        '5' { return }
+        '5' { Write-Title; Select-ServerForManagement; Read-Host 'Pressione Enter para voltar' | Out-Null }
+        '6' { return }
         default { Write-Host 'Opcao invalida.' -ForegroundColor Yellow; Start-Sleep -Seconds 1 }
     }
 }
