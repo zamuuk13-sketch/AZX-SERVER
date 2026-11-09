@@ -56,9 +56,9 @@ Mantenha azx-rcon.txt privado e nunca encaminhe a porta RCON para a internet.
 $MonitoringHelp=@'
 
 AZX MONITORAMENTO (ETAPA 3)
-- status.bat: painel de status, conexao TCP, jogadores, processo Java, memoria e logs.
-- monitorar.bat: painel atualizado continuamente (Ctrl+C encerra).
-- diagnostico.bat: verificacoes locais de rede, IPv4, firewall e logs.
+- status.bat: painel de status, conexao TCP, jogadores, processo Java, memoria e eventos/logs.
+- monitorar.bat: painel ao vivo; registra historico CSV em monitor-data\\historico.csv (Ctrl+C encerra).
+- diagnostico.bat: verificacoes locais de rede, IPv4, firewall e logs. TPS/MSPT requer plugin/mod proprio.
 O teste TCP e local; nao garante acesso externo nem detecta CGNAT.
 '@
 if(Test-Path $HelpPath){
