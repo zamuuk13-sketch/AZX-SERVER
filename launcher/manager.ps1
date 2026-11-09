@@ -240,7 +240,7 @@ function New-AzxServer {
     $Players = Ask-Number 'Maximo de jogadores' 10 1 100
     $ViewDistance = Ask-Number 'Distancia de visao' 6 2 16
     $MinRam = Ask-Number 'RAM inicial em GB' 2 1 64
-    $MaxRam = Ask-Number 'RAM maxima em GB' 4 $MinRam 64
+    $MaxRam = Ask-Number 'RAM maxima em GB' ([Math]::Max(4,$MinRam)) $MinRam 64
     Write-Host ''
     Write-Host 'RESUMO DA INSTALACAO' -ForegroundColor Cyan
     Write-Host "Nome: $Name"
