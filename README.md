@@ -44,6 +44,26 @@ O servidor usa a porta TCP escolhida no assistente. Para amigos fora da rede loc
 
 Desativar `online-mode` permite conexoes sem autenticacao oficial, mas facilita falsificacao de nomes e impersonacao. Use somente em ambiente privado, com pessoas confiaveis, e mantenha whitelist/controles de acesso quando disponiveis.
 
-## Limites desta etapa
+## Etapa 2 — Manager
 
-A Etapa 1 entrega o criador e a instalacao base para Minecraft 1.20.1 com Vanilla, Forge e Fabric. Gerenciamento completo (parar/reiniciar/configurar), NeoForge e outros loaders/versoes, backups, monitoramento, diagnostico de rede e atualizacoes serao implementados nas etapas seguintes. Os arquivos gerados aqui sao instancias reais, mas a etapa ainda nao e o gerenciador completo prometido.
+Cada instancia AZX recebe agora:
+
+- \`configure.bat\`: menu para alterar MOTD, limite de jogadores, distancia de visao, porta, autenticacao, dificuldade, modo de jogo e whitelist.
+- \`stop.bat\`: envia o comando \`stop\` pelo RCON para o Minecraft salvar o mundo e encerrar normalmente.
+- \`restart.bat\`: solicita parada graciosa, aguarda o encerramento e abre uma nova janela para iniciar novamente.
+- \`reset.bat\`: restaura configuracoes comuns sem apagar mundo, mods ou configs de mods.
+
+O controle local usa RCON com senha aleatoria criada por instancia e guardada em \`azx-rcon.txt\`. O AZX configura uma porta RCON derivada da porta do jogo e habilita o recurso em \`server.properties\`. Mantenha \`azx-rcon.txt\` privado e nao compartilhe essa senha. Nao encaminhe a porta RCON no roteador nem a exponha na internet.
+
+Instancias criadas antes da Etapa 2 recebem os arquivos de gerenciamento e a configuracao RCON quando forem selecionadas em **Gerenciar servidor** no menu principal.
+
+### Como usar
+
+1. Abra \`AZX-SERVER.bat\`.
+2. Escolha **Gerenciar servidor** e selecione uma instancia.
+3. Para administrar diretamente, abra \`configure.bat\`, \`stop.bat\`, \`restart.bat\` ou \`reset.bat\` dentro da pasta da instancia.
+4. Alteracoes em \`server.properties\` exigem reiniciar o servidor. Operacoes OP e whitelist podem ser enviadas ao servidor ligado.
+
+## Limites atuais
+
+As Etapas 1 e 2 cobrem criacao e administracao basica para Minecraft 1.20.1 com Vanilla, Forge e Fabric. Ainda faltam testes de execucao em Windows em diferentes instalacoes, monitoramento, diagnostico de rede, backups, atualizacoes e suporte a mais loaders/versoes. O RCON e local e nao deve ser exposto a internet.
