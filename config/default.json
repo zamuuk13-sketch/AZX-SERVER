@@ -1,9 +1,14 @@
 {
+  "stage": 1,
   "minecraftVersion": "1.20.1",
+  "supportedLoaders": ["Vanilla", "Forge", "Fabric"],
   "defaultLoader": "Forge",
   "forgeVersion": "47.2.0",
   "defaultPort": 25565,
   "defaultOnlineMode": true,
-  "defaultMaxPlayers": 5,
-  "defaultViewDistance": 6
+  "defaultMaxPlayers": 10,
+  "defaultViewDistance": 6,
+  "defaultMinRamGB": 2,
+  "defaultMaxRamGB": 4,
+  "javaMajorMinimum": 17
 }
