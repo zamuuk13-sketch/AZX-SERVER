@@ -1,5 +1,5 @@
 {
-  "stage": 1,
+  "stage": 3,
   "minecraftVersion": "1.20.1",
   "supportedLoaders": ["Vanilla", "Forge", "Fabric"],
   "defaultLoader": "Forge",
