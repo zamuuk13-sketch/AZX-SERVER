@@ -1,5 +1,5 @@
 {
-  "stage": 5,
+  "stage": 6,
   "minecraftVersion": "1.20.1",
   "supportedLoaders": [
     "Vanilla",
@@ -14,5 +14,7 @@
   "defaultViewDistance": 6,
   "defaultMinRamGB": 2,
   "defaultMaxRamGB": 4,
-  "javaMajorMinimum": 17
+  "javaMajorMinimum": 17,
+  "externalAccessProvider": "playit",
+  "externalAccessEnabledByDefault": false
 }
