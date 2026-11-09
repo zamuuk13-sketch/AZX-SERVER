@@ -75,6 +75,14 @@ function Select-Backup {
  return $null
 }
 function Test-BackupArchive([string]$Archive,[string]$Destination) {
+ Add-Type -AssemblyName System.IO.Compression.FileSystem
+ $Zip=[IO.Compression.ZipFile]::OpenRead($Archive)
+ try {
+  foreach($Entry in $Zip.Entries){
+   $ZipPath=$Entry.FullName.Replace('/','\\')
+   if([IO.Path]::IsPathRooted($ZipPath) -or $ZipPath -match '(^|\\)\.\.(\\|$)' -or $ZipPath -match '^[A-Za-z]:'){throw 'O ZIP contem um caminho inseguro.'}
+  }
+ } finally {$Zip.Dispose()}
  Expand-Archive -LiteralPath $Archive -DestinationPath $Destination -Force
  $ManifestPath=Join-Path $Destination $ManifestName
  if(!(Test-Path -LiteralPath $ManifestPath)){throw 'Backup sem manifesto AZX. Arquivo nao reconhecido.'}
