@@ -53,7 +53,7 @@ Cada instancia AZX recebe agora:
 - `restart.bat`: solicita parada graciosa, aguarda o encerramento e abre uma nova janela para iniciar novamente.
 - `reset.bat`: restaura configuracoes comuns sem apagar mundo, mods ou configs de mods.
 
-O controle local usa RCON com senha aleatoria criada por instancia e guardada em `azx-rcon.txt`. O AZX configura uma porta RCON derivada da porta do jogo e habilita o recurso em `server.properties`. Mantenha `azx-rcon.txt` privado e nao compartilhe essa senha. Nao encaminhe a porta RCON no roteador nem a exponha na internet.
+O AZX envia os comandos administrativos ao RCON por meio de `127.0.0.1`, com senha aleatoria por instancia guardada em `azx-rcon.txt`. O RCON e um protocolo sem criptografia e o servidor pode escutar em interfaces de rede; por isso, mantenha a senha privada, nao encaminhe a porta RCON no roteador e nao crie regras de firewall que permitam acesso externo a essa porta. O AZX usa uma porta RCON separada da porta de jogo e desativa a transmissao de comandos RCON aos operadores.
 
 Instancias criadas antes da Etapa 2 recebem os arquivos de gerenciamento e a configuracao RCON quando forem selecionadas em **Gerenciar servidor** no menu principal. Se uma dessas instancias ja estiver ligada, a configuracao RCON so passa a valer depois de um reinicio; ate la, desligue-a pelo console do Minecraft.
 
@@ -66,4 +66,4 @@ Instancias criadas antes da Etapa 2 recebem os arquivos de gerenciamento e a con
 
 ## Limites atuais
 
-As Etapas 1 e 2 cobrem criacao e administracao basica para Minecraft 1.20.1 com Vanilla, Forge e Fabric. Ainda faltam testes de execucao em Windows em diferentes instalacoes, monitoramento, diagnostico de rede, backups, atualizacoes e suporte a mais loaders/versoes. O RCON e local e nao deve ser exposto a internet.
+As Etapas 1 e 2 cobrem criacao e administracao basica para Minecraft 1.20.1 com Vanilla, Forge e Fabric. Ainda faltam testes de execucao em Windows em diferentes instalacoes, monitoramento, diagnostico de rede, backups, atualizacoes e suporte a mais loaders/versoes. O RCON nao e criptografado e nao deve ser exposto a internet.
