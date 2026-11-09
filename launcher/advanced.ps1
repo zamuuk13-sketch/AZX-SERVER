@@ -79,7 +79,7 @@ function Test-BackupArchive([string]$Archive,[string]$Destination) {
  $Zip=[IO.Compression.ZipFile]::OpenRead($Archive)
  try {
   foreach($Entry in $Zip.Entries){
-   $ZipPath=$Entry.FullName.Replace('/','\\')
+   $ZipPath=$Entry.FullName.Replace('/','\')
    if([IO.Path]::IsPathRooted($ZipPath) -or $ZipPath -match '(^|\\)\.\.(\\|$)' -or $ZipPath -match '^[A-Za-z]:'){throw 'O ZIP contem um caminho inseguro.'}
   }
  } finally {$Zip.Dispose()}
