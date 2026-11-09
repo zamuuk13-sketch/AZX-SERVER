@@ -76,6 +76,22 @@ O menu principal tambem oferece **Status do servidor** e **Diagnostico de rede**
 
 **Limites importantes:** o teste de ping mede o tempo de conexao TCP no proprio computador, nao o ping real de jogadores externos. O diagnostico nao consegue confirmar automaticamente encaminhamento de porta, disponibilidade publica ou CGNAT. Para acesso externo, encaminhe apenas a porta TCP do jogo para o IPv4 local correto e mantenha a porta RCON fechada. Nenhuma senha RCON e exibida pelo painel.
 
+## Etapa 4 — AZX Monitor (penultima etapa)
+
+A Etapa 4 amplia o monitoramento para um painel ao vivo, com coleta periodica de metricas e historico local:
+
+- Estado do servidor pelo protocolo de status Minecraft, alem da conexao TCP local.
+- Jogadores online/limite e nomes de amostra quando o proprio servidor os fornece.
+- Processo Java/PID, memoria residente do processo, CPU acumulada e uptime.
+- Espaco livre na unidade do servidor.
+- Eventos recentes de entrada/saida e erros identificados no log.
+- Historico de snapshots em CSV, salvo em `monitor-data/historico.csv`, enquanto `monitorar.bat` estiver aberto.
+- Opcao **9. Monitoramento ao vivo** no menu principal.
+
+Execute `status.bat` para uma leitura unica, `monitorar.bat` para acompanhar e registrar o historico, ou `diagnostico.bat` para verificacoes locais de rede.
+
+**Limites das metricas:** memoria apresentada e o uso residente do processo Java, nao a ocupacao exata do heap da JVM. CPU e tempo acumulado do processo, nao porcentagem instantanea. TPS/MSPT nao e fornecido pelo servidor Vanilla; para essas metricas e necessario instalar um plugin/mod compativel. A lista de nomes e apenas a amostra disponibilizada pelo protocolo de status, nao necessariamente a lista completa. O historico CSV so e gravado enquanto o monitor continuo esta rodando.
+
 ## Limites atuais
 
-As Etapas 1 a 3 cobrem criacao, administracao basica, monitoramento local e diagnostico inicial para Minecraft 1.20.1 com Vanilla, Forge e Fabric. Ainda faltam testes de execucao em Windows em diferentes instalacoes, backups, atualizacoes e suporte a mais loaders/versoes. O RCON nao e criptografado e nao deve ser exposto a internet.
+As Etapas 1 a 4 cobrem criacao, administracao, diagnostico local e monitoramento com historico para Minecraft 1.20.1 com Vanilla, Forge e Fabric. Ainda faltam testes de execucao em Windows em diferentes instalacoes, backups, atualizacoes e suporte a mais loaders/versoes. O RCON nao e criptografado e nao deve ser exposto a internet.
