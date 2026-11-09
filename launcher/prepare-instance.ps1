@@ -22,6 +22,7 @@ foreach($Line in Get-Content -LiteralPath $PropertiesPath){
 $Map['enable-rcon']='true'
 $Map['rcon.port']="$($Config.rconPort)"
 $Map['rcon.password']=$Password
+$Map['broadcast-rcon-to-ops']='false'
 Copy-Item -LiteralPath $PropertiesPath -Destination "$PropertiesPath.azx-backup" -Force
 $Lines=foreach($Key in $Map.Keys){"$Key=$($Map[$Key])"}
 Set-Content -LiteralPath $PropertiesPath -Value $Lines -Encoding ASCII
