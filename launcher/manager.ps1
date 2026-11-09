@@ -173,7 +173,7 @@ function New-StartBat([string]$Folder, [string]$Loader, [int]$MinRam, [int]$MaxR
             '  exit /b 1'
             ')'
             "echo Iniciando servidor Fabric... RAM: $MinRam GB - $MaxRam GB"
-            'java -Xms' + $MinRam + 'G -Xmx' + $MaxRam + 'G -jar fabric-server-launch.jar nogui'
+            ('java -Xms{0}G -Xmx{1}G -jar fabric-server-launch.jar nogui' -f $MinRam,$MaxRam)
         )
     } else {
         $Lines += @(
@@ -183,7 +183,7 @@ function New-StartBat([string]$Folder, [string]$Loader, [int]$MinRam, [int]$MaxR
             '  exit /b 1'
             ')'
             "echo Iniciando servidor Vanilla... RAM: $MinRam GB - $MaxRam GB"
-            'java -Xms' + $MinRam + 'G -Xmx' + $MaxRam + 'G -jar server.jar nogui'
+            ('java -Xms{0}G -Xmx{1}G -jar server.jar nogui' -f $MinRam,$MaxRam)
         )
     }
     $Lines += @('echo.','echo O processo do servidor foi encerrado.','pause','endlocal')
