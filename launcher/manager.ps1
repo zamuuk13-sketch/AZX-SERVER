@@ -366,7 +366,13 @@ function Show-Servers {
         if (Test-Path $ConfigPath) {
             try {
                 $Config = Get-Content -LiteralPath $ConfigPath -Raw | ConvertFrom-Json
-                Write-Host ("- {0} | Minecraft {1} | {2} | porta {3}" -f $Item.Name,$Config.minecraftVersion,$Config.loader,$Config.port)
+                $Line = "- {0} | Minecraft {1} | {2} | porta {3}" -f $Item.Name,$Config.minecraftVersion,$Config.loader,$Config.port
+                if ($Config.externalAccess -and $Config.externalAccess.enabled -and $Config.externalAccess.address) {
+                    $Line += " | Playit: $($Config.externalAccess.address)"
+                } elseif ($Config.externalAccess -and $Config.externalAccess.enabled) {
+                    $Line += ' | Playit habilitado (endereco ainda nao salvo)'
+                }
+                Write-Host $Line
             } catch { Write-Host "- $($Item.Name) | configuracao nao reconhecida" }
         } else { Write-Host "- $($Item.Name)" }
     }
