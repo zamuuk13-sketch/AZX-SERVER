@@ -43,6 +43,8 @@ foreach($Tool in @(@{Name='status';Mode='status'},@{Name='diagnostico';Mode='dia
     $Bat=@('@echo off','setlocal','cd /d "%~dp0"',('powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%~dp0..\..\launcher\monitor.ps1" -ServerPath "%~dp0." -Mode '+$Tool.Mode),'if errorlevel 1 echo O monitor AZX encontrou um erro.','pause','endlocal')
     Set-Content -LiteralPath (Join-Path $Folder ($Tool.Name+'.bat')) -Value $Bat -Encoding ASCII
 }
+$AdvancedBat=@('@echo off','setlocal','cd /d "%~dp0"','powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%~dp0..\..\launcher\advanced.ps1" -ServerPath "%~dp0." -Action menu','if errorlevel 1 echo O AZX Advanced encontrou um erro.','pause','endlocal')
+Set-Content -LiteralPath (Join-Path $Folder 'advanced.bat') -Value $AdvancedBat -Encoding ASCII
 $HelpPath=Join-Path $Folder 'LEIA-PRIMEIRO.txt'
 $ManagementHelp=@'
 
@@ -55,7 +57,7 @@ Mantenha azx-rcon.txt privado e nunca encaminhe a porta RCON para a internet.
 '@
 $MonitoringHelp=@'
 
-AZX MONITORAMENTO (ETAPA 3)
+AZX MONITORAMENTO (ETAPA 4)
 - status.bat: painel de status, conexao TCP, jogadores, processo Java, memoria e eventos/logs.
 - monitorar.bat: painel ao vivo; registra historico CSV em monitor-data\\historico.csv (Ctrl+C encerra).
 - diagnostico.bat: verificacoes locais de rede, IPv4, firewall e logs. TPS/MSPT requer plugin/mod proprio.
@@ -66,4 +68,12 @@ if(Test-Path $HelpPath){
     if($Existing -notmatch 'AZX MANAGER'){Add-Content -LiteralPath $HelpPath -Value $ManagementHelp -Encoding UTF8}
     if($Existing -notmatch 'ETAPA 3'){Add-Content -LiteralPath $HelpPath -Value $MonitoringHelp -Encoding UTF8}
 }
-Write-Host 'Arquivos de gerenciamento e monitoramento AZX instalados.' -ForegroundColor Green
+$AdvancedHelp=@'
+
+AZX ADVANCED (ETAPA 5)
+- advanced.bat: backups completos ZIP, listagem, verificacao SHA-256, restauracao e limpeza de logs antigos.
+- Backup/restauracao exigem o servidor desligado. A restauracao cria uma copia automatica do estado atual antes de substituir os arquivos.
+- Backups incluem configuracoes e podem conter a senha RCON. Mantenha os arquivos ZIP privados e copie-os para outro disco.
+'@
+if(Test-Path $HelpPath){$Existing=Get-Content $HelpPath -Raw;if($Existing -notmatch 'AZX ADVANCED'){Add-Content -LiteralPath $HelpPath -Value $AdvancedHelp -Encoding UTF8}}
+Write-Host 'Arquivos de gerenciamento, monitoramento e AZX Advanced instalados.' -ForegroundColor Green
