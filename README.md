@@ -76,3 +76,33 @@ O menu **10. AZX Advanced** ou o arquivo `advanced.bat` de cada instancia oferec
 ## Escopo e testes
 
 As cinco etapas do AZX estao implementadas para o fluxo de criacao 1.20.1 Vanilla, Forge e Fabric. O workflow do GitHub Actions valida sintaxe PowerShell e JSON, mas isso nao substitui teste funcional em uma maquina Windows com Java e servidores reais. Teste criacao, inicializacao, parada, backup, verificacao e restauracao em uma instancia descartavel antes de confiar os mundos importantes ao AZX.
+
+
+## Etapa 6 — AZX External Access (Playit)
+
+O AZX pode iniciar o agente oficial do Playit para publicar um servidor Minecraft Java sem encaminhamento de portas no roteador e sem exigir que os jogadores instalem um cliente.
+
+### Configuracao inicial
+
+1. Inicie \`AZX-SERVER.bat\` e abra **11. AZX External Access (Playit)**.
+2. Selecione a instancia e escolha **Habilitar Playit / instalar e iniciar agente**.
+3. Na primeira execucao, vincule o agente a sua conta gratuita Playit usando o link/codigo exibido na janela do agente.
+4. No painel Playit, crie um tunel do tipo **Minecraft Java** apontando para \`127.0.0.1\` e para a porta configurada naquela instancia (normalmente \`25565\`).
+5. Copie o endereco publico fornecido pelo Playit e use **Salvar endereco publico do tunel** no menu AZX.
+6. A partir dai, o \`start.bat\` da instancia inicia o agente Playit automaticamente quando a integracao estiver habilitada.
+
+Tambem e criado um \`playit.bat\` dentro da pasta de cada instancia para abrir diretamente o gerenciamento do tunel.
+
+### Comportamento e limites
+
+- O executavel e baixado sob demanda da release oficial \`playit-cloud/playit-agent\` e armazenado em \`services/playit/playit.exe\`. O AZX nao inclui binarios de terceiros no repositorio.
+- A primeira vinculacao da conta e a criacao do tunel continuam sendo feitas pelo usuario no site oficial; o AZX nao pede nem armazena senha ou token da conta Playit.
+- O agente e compartilhado por todas as instancias AZX no mesmo computador. Cada instancia precisa de seu proprio tunel configurado no painel, apontando para sua porta local.
+- O endereco salvo no AZX e informativo; o AZX nao consulta a conta Playit para descobrir automaticamente o hostname nem garante que o tunel esteja online.
+- Se o Playit falhar, o servidor Minecraft continua iniciando localmente.
+- Somente o computador host executa o agente. Os amigos entram pelo endereco publico usando o Minecraft Java normal.
+- A conexao depende da disponibilidade, limites e termos do plano Playit. Consulte o site oficial para detalhes atuais.
+- O agente usa uma conexao de saida; nao e necessario abrir a porta do jogo no roteador para o tunel funcionar.
+
+Site e downloads oficiais: https://playit.gg/  
+Documentacao: https://playit.gg/support/
