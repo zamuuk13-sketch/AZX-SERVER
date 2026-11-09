@@ -14,7 +14,7 @@ jobs:
       - name: Validate PowerShell syntax
         shell: pwsh
         run: |
-          $files = @("$PWD/launcher/manager.ps1", "$PWD/launcher/server-manager.ps1", "$PWD/launcher/prepare-instance.ps1")
+          $files = @("$PWD/launcher/manager.ps1", "$PWD/launcher/server-manager.ps1", "$PWD/launcher/prepare-instance.ps1", "$PWD/launcher/monitor.ps1")
           foreach ($file in $files) {
             $tokens = $null
             $errors = $null
