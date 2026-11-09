@@ -48,21 +48,21 @@ Desativar `online-mode` permite conexoes sem autenticacao oficial, mas facilita 
 
 Cada instancia AZX recebe agora:
 
-- \`configure.bat\`: menu para alterar MOTD, limite de jogadores, distancia de visao, porta, autenticacao, dificuldade, modo de jogo e whitelist.
-- \`stop.bat\`: envia o comando \`stop\` pelo RCON para o Minecraft salvar o mundo e encerrar normalmente.
-- \`restart.bat\`: solicita parada graciosa, aguarda o encerramento e abre uma nova janela para iniciar novamente.
-- \`reset.bat\`: restaura configuracoes comuns sem apagar mundo, mods ou configs de mods.
+- `configure.bat`: menu para alterar MOTD, limite de jogadores, distancia de visao, porta, autenticacao, dificuldade, modo de jogo e whitelist.
+- `stop.bat`: envia o comando `stop` pelo RCON para o Minecraft salvar o mundo e encerrar normalmente.
+- `restart.bat`: solicita parada graciosa, aguarda o encerramento e abre uma nova janela para iniciar novamente.
+- `reset.bat`: restaura configuracoes comuns sem apagar mundo, mods ou configs de mods.
 
-O controle local usa RCON com senha aleatoria criada por instancia e guardada em \`azx-rcon.txt\`. O AZX configura uma porta RCON derivada da porta do jogo e habilita o recurso em \`server.properties\`. Mantenha \`azx-rcon.txt\` privado e nao compartilhe essa senha. Nao encaminhe a porta RCON no roteador nem a exponha na internet.
+O controle local usa RCON com senha aleatoria criada por instancia e guardada em `azx-rcon.txt`. O AZX configura uma porta RCON derivada da porta do jogo e habilita o recurso em `server.properties`. Mantenha `azx-rcon.txt` privado e nao compartilhe essa senha. Nao encaminhe a porta RCON no roteador nem a exponha na internet.
 
-Instancias criadas antes da Etapa 2 recebem os arquivos de gerenciamento e a configuracao RCON quando forem selecionadas em **Gerenciar servidor** no menu principal.
+Instancias criadas antes da Etapa 2 recebem os arquivos de gerenciamento e a configuracao RCON quando forem selecionadas em **Gerenciar servidor** no menu principal. Se uma dessas instancias ja estiver ligada, a configuracao RCON so passa a valer depois de um reinicio; ate la, desligue-a pelo console do Minecraft.
 
 ### Como usar
 
-1. Abra \`AZX-SERVER.bat\`.
+1. Abra `AZX-SERVER.bat`.
 2. Escolha **Gerenciar servidor** e selecione uma instancia.
-3. Para administrar diretamente, abra \`configure.bat\`, \`stop.bat\`, \`restart.bat\` ou \`reset.bat\` dentro da pasta da instancia.
-4. Alteracoes em \`server.properties\` exigem reiniciar o servidor. Operacoes OP e whitelist podem ser enviadas ao servidor ligado.
+3. Para administrar diretamente, abra `configure.bat`, `stop.bat`, `restart.bat` ou `reset.bat` dentro da pasta da instancia.
+4. Alteracoes em `server.properties` exigem reiniciar o servidor. Operacoes OP e whitelist podem ser enviadas ao servidor ligado.
 
 ## Limites atuais
 
