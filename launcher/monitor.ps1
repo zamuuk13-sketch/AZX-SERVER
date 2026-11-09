@@ -15,6 +15,44 @@ function Test-TcpPort([string]$HostName,[int]$Port,[int]$Timeout=1000){
  try{$Task=$Client.ConnectAsync($HostName,$Port);if(!$Task.Wait($Timeout) -or !$Client.Connected){return @{Open=$false;Ms=$null}};$Timer.Stop();return @{Open=$true;Ms=$Timer.ElapsedMilliseconds}}
  catch{return @{Open=$false;Ms=$null}}finally{$Client.Dispose()}
 }
+function Write-VarInt($Stream,[int]$Value) {
+ while(($Value -band [int]0xFFFFFF80) -ne 0){$Stream.WriteByte([byte](($Value -band 0x7F) -bor 0x80));$Value=($Value -shr 7)}
+ $Stream.WriteByte([byte]$Value)
+}
+function Read-VarInt($Stream) {
+ $Value=0;$Position=0
+ while($true){$B=$Stream.ReadByte();if($B -lt 0){throw 'Conexao encerrada durante leitura do status.'};$Value=$Value -bor (($B -band 0x7F) -shl $Position);if(($B -band 0x80) -eq 0){break};$Position+=7;if($Position -ge 35){throw 'VarInt invalido.'}}
+ return $Value
+}
+function Get-MinecraftStatus([int]$Port) {
+ $Client=[Net.Sockets.TcpClient]::new()
+ try {
+  $Task=$Client.ConnectAsync('127.0.0.1',$Port)
+  if(!$Task.Wait(1200) -or !$Client.Connected){return $null}
+  $Stream=$Client.GetStream();$Stream.ReadTimeout=1800;$Stream.WriteTimeout=1800
+  $Payload=[IO.MemoryStream]::new()
+  Write-VarInt $Payload 0
+  Write-VarInt $Payload 760
+  $HostBytes=[Text.Encoding]::UTF8.GetBytes('127.0.0.1')
+  Write-VarInt $Payload $HostBytes.Length
+  $Payload.Write($HostBytes,0,$HostBytes.Length)
+  $Payload.WriteByte([byte](($Port -shr 8) -band 255));$Payload.WriteByte([byte]($Port -band 255))
+  Write-VarInt $Payload 1
+  $Data=$Payload.ToArray();$Payload.Dispose()
+  Write-VarInt $Stream $Data.Length;$Stream.Write($Data,0,$Data.Length)
+  Write-VarInt $Stream 1;$Stream.WriteByte(0);$Stream.Flush()
+  $PacketLength=Read-VarInt $Stream
+  if($PacketLength -gt 1048576 -or $PacketLength -lt 1){throw 'Resposta de status invalida.'}
+  $PacketId=Read-VarInt $Stream
+  if($PacketId -ne 0){throw 'ID de pacote de status inesperado.'}
+  $JsonLength=Read-VarInt $Stream
+  if($JsonLength -lt 1 -or $JsonLength -gt $PacketLength){throw 'JSON de status invalido.'}
+  $Bytes=New-Object byte[] $JsonLength
+  $Offset=0
+  while($Offset -lt $JsonLength){$Read=$Stream.Read($Bytes,$Offset,$JsonLength-$Offset);if($Read -le 0){throw 'Resposta de status incompleta.'};$Offset+=$Read}
+  return ([Text.Encoding]::UTF8.GetString($Bytes) | ConvertFrom-Json)
+ } catch {return $null} finally {$Client.Dispose()}
+}
 function Get-ServerProcess {
  try{
   $Matches=@(Get-CimInstance Win32_Process -Filter "Name='java.exe' OR Name='javaw.exe'" -ErrorAction Stop | Where-Object {$_.CommandLine -and $_.CommandLine.IndexOf($ServerPath,[StringComparison]::OrdinalIgnoreCase) -ge 0})
@@ -35,7 +73,7 @@ function Show-Status {
  Write-Host '============================================================' -ForegroundColor DarkCyan
  Write-Host ("Minecraft: {0} | Loader: {1}" -f $Config.minecraftVersion,$Config.loader)
  Write-Host ("Endereco local: 127.0.0.1:{0}/TCP" -f $Port)
- if($Tcp.Open){Write-Host ("STATUS: ONLINE (porta TCP respondeu em {0} ms)" -f $Tcp.Ms) -ForegroundColor Green}else{Write-Host 'STATUS: OFFLINE ou porta nao esta aceitando conexoes' -ForegroundColor Red}
+ if($Tcp.Open){Write-Host ("STATUS: ONLINE (porta TCP respondeu em {0} ms)" -f $Tcp.Ms) -ForegroundColor Green;$Mc=Get-MinecraftStatus $Port;if($Mc -and $Mc.players){Write-Host ("Jogadores: {0}/{1}" -f $Mc.players.online,$Mc.players.max);if($Mc.version.name){Write-Host "Versao reportada: $($Mc.version.name)"}}}else{Write-Host 'STATUS: OFFLINE ou porta nao esta aceitando conexoes' -ForegroundColor Red}
  if($Process){$Process.Refresh();$Memory=[Math]::Round($Process.WorkingSet64/1GB,2);$Cpu=[Math]::Round($Process.CPU,1);$Uptime=(Get-Date)-$Process.StartTime;Write-Host ("Java PID {0} | RAM {1} GB | CPU acumulada {2}s" -f $Process.Id,$Memory,$Cpu) -ForegroundColor Green;Write-Host ("Tempo ligado: {0}d {1:00}h {2:00}m" -f [int]$Uptime.TotalDays,$Uptime.Hours,$Uptime.Minutes)}else{Write-Host 'Processo Java desta instancia: nao identificado.' -ForegroundColor Yellow}
  try{$Drive=[IO.Path]::GetPathRoot($ServerPath).TrimEnd('\').TrimEnd(':');$Disk=Get-PSDrive -Name $Drive -ErrorAction Stop;$Free=[Math]::Round($Disk.Free/1GB,1);Write-Host ("Espaco livre na unidade {0}: {1} GB" -f $Drive,$Free)}catch{}
  $Issues=Get-RecentLogIssues;Write-Host '';Write-Host 'ULTIMOS AVISOS/ERROS DO LOG' -ForegroundColor Cyan
