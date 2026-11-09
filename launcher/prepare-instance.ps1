@@ -66,7 +66,7 @@ O teste TCP e local; nao garante acesso externo nem detecta CGNAT.
 if(Test-Path $HelpPath){
     $Existing=Get-Content $HelpPath -Raw
     if($Existing -notmatch 'AZX MANAGER'){Add-Content -LiteralPath $HelpPath -Value $ManagementHelp -Encoding UTF8}
-    if($Existing -notmatch 'ETAPA 3'){Add-Content -LiteralPath $HelpPath -Value $MonitoringHelp -Encoding UTF8}
+    if($Existing -notmatch 'ETAPA 4'){Add-Content -LiteralPath $HelpPath -Value $MonitoringHelp -Encoding UTF8}
 }
 $AdvancedHelp=@'
 
