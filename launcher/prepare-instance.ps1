@@ -53,5 +53,17 @@ AZX MANAGER (ETAPA 2)
 - reset.bat: restaurar configuracoes comuns sem apagar o mundo.
 Mantenha azx-rcon.txt privado e nunca encaminhe a porta RCON para a internet.
 '@
-if(Test-Path $HelpPath){$Existing=Get-Content $HelpPath -Raw;if($Existing -notmatch 'AZX MANAGER'){Add-Content -LiteralPath $HelpPath -Value $ManagementHelp -Encoding UTF8}}
+$MonitoringHelp=@'
+
+AZX MONITORAMENTO (ETAPA 3)
+- status.bat: painel de status, conexao TCP, jogadores, processo Java, memoria e logs.
+- monitorar.bat: painel atualizado continuamente (Ctrl+C encerra).
+- diagnostico.bat: verificacoes locais de rede, IPv4, firewall e logs.
+O teste TCP e local; nao garante acesso externo nem detecta CGNAT.
+'@
+if(Test-Path $HelpPath){
+    $Existing=Get-Content $HelpPath -Raw
+    if($Existing -notmatch 'AZX MANAGER'){Add-Content -LiteralPath $HelpPath -Value $ManagementHelp -Encoding UTF8}
+    if($Existing -notmatch 'ETAPA 3'){Add-Content -LiteralPath $HelpPath -Value $MonitoringHelp -Encoding UTF8}
+}
 Write-Host 'Arquivos de gerenciamento e monitoramento AZX instalados.' -ForegroundColor Green
