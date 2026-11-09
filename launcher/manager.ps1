@@ -12,7 +12,7 @@ function Write-Title {
     Clear-Host
     Write-Host '==================================================' -ForegroundColor DarkCyan
     Write-Host '                 AZX SERVER' -ForegroundColor Cyan
-    Write-Host '        SERVER MANAGER - ETAPA 3' -ForegroundColor Gray
+    Write-Host '        SERVER MANAGER - ETAPA 5' -ForegroundColor Gray
     Write-Host '==================================================' -ForegroundColor DarkCyan
     Write-Host ''
 }
@@ -37,6 +37,17 @@ function Select-ServerForMonitoring([string]$Mode) {
         & (Join-Path $Root 'launcher\prepare-instance.ps1') -Folder $Items[$N-1].FullName
         & (Join-Path $Root 'launcher\monitor.ps1') -ServerPath $Items[$N-1].FullName -Mode $Mode
         Read-Host 'Pressione Enter para voltar' | Out-Null
+    }
+}
+function Select-ServerForAdvanced {
+    $Items = @(Get-ChildItem -LiteralPath $ServersRoot -Directory -ErrorAction SilentlyContinue | Where-Object { Test-Path (Join-Path $_.FullName 'azx-server.json') })
+    if ($Items.Count -eq 0) { Write-Host 'Nenhuma instancia AZX encontrada.' -ForegroundColor Yellow; return }
+    for ($i=0; $i -lt $Items.Count; $i++) { Write-Host "$($i+1). $($Items[$i].Name)" }
+    $Pick = Read-Host 'Escolha o servidor (Enter cancela)'
+    $N = 0
+    if ([int]::TryParse($Pick,[ref]$N) -and $N -ge 1 -and $N -le $Items.Count) {
+        & (Join-Path $Root 'launcher\prepare-instance.ps1') -Folder $Items[$N-1].FullName
+        & (Join-Path $Root 'launcher\advanced.ps1') -ServerPath $Items[$N-1].FullName -Action menu
     }
 }
 function Ask-Number([string]$Label, [int]$Default, [int]$Min, [int]$Max) {
@@ -359,6 +370,7 @@ while ($true) {
     Write-Host '7. Status do servidor'
     Write-Host '8. Diagnostico de rede'
     Write-Host '9. Monitoramento ao vivo'
+    Write-Host '10. AZX Advanced (backup e recuperacao)'
     Write-Host ''
     $Choice = Read-Host 'Opcao'
     switch ($Choice) {
@@ -371,6 +383,7 @@ while ($true) {
         '7' { Write-Title; Select-ServerForMonitoring 'status' }
         '8' { Write-Title; Select-ServerForMonitoring 'diagnostics' }
         '9' { Write-Title; Select-ServerForMonitoring 'watch' }
+        '10' { Write-Title; Select-ServerForAdvanced; Read-Host 'Pressione Enter para voltar' | Out-Null }
         default { Write-Host 'Opcao invalida.' -ForegroundColor Yellow; Start-Sleep -Seconds 1 }
     }
 }
