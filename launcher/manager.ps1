@@ -358,6 +358,7 @@ while ($true) {
     Write-Host '6. Sair'
     Write-Host '7. Status do servidor'
     Write-Host '8. Diagnostico de rede'
+    Write-Host '9. Monitoramento ao vivo'
     Write-Host ''
     $Choice = Read-Host 'Opcao'
     switch ($Choice) {
@@ -369,6 +370,7 @@ while ($true) {
         '6' { return }
         '7' { Write-Title; Select-ServerForMonitoring 'status' }
         '8' { Write-Title; Select-ServerForMonitoring 'diagnostics' }
+        '9' { Write-Title; Select-ServerForMonitoring 'watch' }
         default { Write-Host 'Opcao invalida.' -ForegroundColor Yellow; Start-Sleep -Seconds 1 }
     }
 }
